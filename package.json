@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/LittleKitacho/card-games#readme",
   "devDependencies": {
-    "@types/react": "^17.0.3",
-    "@types/react-dom": "^17.0.2"
+    "@babel/cli": "^7.13.10",
+    "@babel/core": "^7.13.10",
+    "@babel/preset-react": "^7.12.13"
   }
 }
