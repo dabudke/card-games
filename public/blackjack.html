@@ -11,7 +11,39 @@
     <body>
         <h1>Blackjack</h1>
 
-        <div id="blackjack"></div>
+        <div id="blackjack">
+            <NOSCRIPT>
+                <h2>Please enable JavaScript to play this game.</h2>
+            </NOSCRIPT>
+        </div>
+
+        <div class="how-to-play">
+            <h4>How to play:</h4>
+            <p>
+                Blackjack is a card game, traditionally played in casinos, that
+                pits Player v. Dealer.  The goal of the game is to get as close
+                to 21 as possible without going over, which is reffered to as
+                busting.
+            </p>
+            <p>
+                During the player's turn, they have two options: Hit or Stand.
+                If a player chooses to Hit, the dealer gives them another card.
+                If a player chooses to Stand, the complete their turn, passing
+                play to the player clockwise of them or to the dealer.
+            </p>
+            <p>
+                The dealer's moves are automatic, as they always hit if their
+                cards add up to less than 17 or stand if they do.  In the end,
+                each player is evaluated to see if they win, lose, or tie,
+                called a push.
+            </p>
+            <p>
+                Cards with a number rank are evaluated to their rank, Aces can
+                be either a 1 or 11, but in this version Aces are 1 unless
+                given as one of the intial 2 cards, then they are evaluated
+                as an 11.  Face cards are all 10.
+            </p>
+        </div>
 
         <script src="./js/blackjack.js"></script>
     </body>
