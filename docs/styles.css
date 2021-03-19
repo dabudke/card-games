@@ -11,6 +11,10 @@ div.how-to-play {
     margin: 2% 4% 1% 4%;
 }
 
+button {
+    margin: 2px;
+}
+
 /**
  * Styles for CSS Playing Cards
  *
