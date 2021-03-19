@@ -87,7 +87,7 @@ class Blackjack extends React.Component {
       onClick: this.stand
     }, "Stand"), this.state.win && /*#__PURE__*/React.createElement("button", {
       onClick: this.reload
-    }, "Play again!"));
+    }, "Play again!")); //TODO: Refactor for no refresh.
   }
 
   reload() {
@@ -241,15 +241,23 @@ class Blackjack extends React.Component {
 
   countCards(deck) {
     var count = 0;
+    var aceCount = 0;
     deck.forEach((card, index) => {
-      if (card.rank == 1 && index < 2) {
+      if (card.rank == 1) {
         count += 11;
+        aceCount++;
       } else if (card.rank > 9) {
         count += 10;
       } else {
         count += card.rank;
       }
     });
+
+    while (count > 21 && aceCount > 0) {
+      count -= 10;
+      aceCount--;
+    }
+
     return count;
   }
 
