@@ -73,12 +73,14 @@ class Blackjack extends React.Component {
             dealer: dealer,
             player: player,
             winner: 0,
-            win: false
+            win: false,
+            clear: false
         };
 
         this.hit = this.hit.bind(this);
         this.stand = this.stand.bind(this);
         this.dealerMove = this.dealerMove.bind(this);
+        this.updateScore = this.updateScore.bind(this);
         this.getStatusText = this.getStatusText.bind(this);
     }
 
@@ -96,7 +98,32 @@ class Blackjack extends React.Component {
             {this.state.state == 1 && <button onClick={this.hit}>Hit</button>}
             {this.state.state != 4 && <button onClick={this.stand}>Stand</button>}
             {this.state.win && <button onClick={this.reload}>Play again!</button>}
+            {this.state.win && this.renderScoreData()}
+            {(this.state.win && !this.state.clear) && <button onClick={() => this.setState({clear: true})}>Clear Data</button>}
+            {this.state.clear && <strong>This will clear ALL data, including your highscores.  Click again to confirm.  </strong>}
+            {this.state.clear && <button onClick={() => {window.localStorage.clear(); window.location.reload();}}>Clear Data</button>}
         </div>); //TODO: Refactor for no refresh.
+    }
+
+    renderScoreData() {
+        return(
+            <p>Wins: <strong>{window.localStorage.getItem("wins")}</strong>  Pushes: <strong>{window.localStorage.getItem("ties")}</strong>  Losses: <strong>{window.localStorage.getItem("losses")}</strong></p>
+        )
+    }
+
+    updateScore() {
+        if (window.localStorage.key(0) == null) {
+            window.localStorage.setItem("ties", "0");
+            window.localStorage.setItem("losses", "0");
+            window.localStorage.setItem("wins", "0");
+        }
+        if (this.state.winner == 0) {
+            window.localStorage.setItem("ties", parseInt(window.localStorage.getItem("ties")) + 1);
+        } else if (this.state.winner == 1) {
+            window.localStorage.setItem("losses", parseInt(window.localStorage.getItem("losses")) + 1);
+        } else if (this.state.winner == 2) {
+            window.localStorage.setItem("wins", parseInt(window.localStorage.getItem("wins")) + 1)
+        }
     }
     
     reload() {
@@ -188,7 +215,7 @@ class Blackjack extends React.Component {
     }
 
     blackjack(deck) {
-        return this.countCards(deck) == 21;
+        return this.countCards(deck) == 21 && this.state.player.length == 2;
     }
 
     dealerMove() {
@@ -220,20 +247,23 @@ class Blackjack extends React.Component {
 
             if (dealerScore > playerScore) {
                 this.setState({
-                    win: true,
                     winner: 1
                 });
             } else if (dealerScore < playerScore) {
                 this.setState({
-                    win: true,
                     winner: 2
                 });
             } else if (dealerScore == playerScore) {
                 this.setState({
-                    win: true,
                     winner: 0
                 });
             }
+
+            this.updateScore();
+
+            this.setState({
+                win: true
+            })
         }
 
         if (!this.state.win) {
