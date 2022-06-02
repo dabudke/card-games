@@ -1,306 +1,172 @@
-/* 
-    Hey, you shouldn't be here!  This is private code and...
-    
-    Ah, who am I kidding?  It's open source, take a big o' whiff of
-    sloppy code and bad choices, it's blackjack!  Although, you
-    definetly could cheat...  Just type in 'console.log(cards)'
-    and you can look at the whole deck!
-*/
+const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const suits = ["diams", "hearts", "spades", "clubs"];
+const suitCodes = ["♦", "♥", "♠", "♣"];
 
-console.warn("Hey, you shouldn't be here!  What are you doing, get out of the console!  Oh, if your mother knew you were here...");
+function countCards(deck) {
+    let count = 0, aces = 0;
 
-const cards = []
-
-for (var i = 0; i < 52; i++) {
-    /*
-     * 1 - Spade
-     * 2 - Club 
-     * 3 - Heart
-     * 4 - Diamond
-     */
-    var x = i + 1;
-    var y = 0;
-    var z;
-
-    while (x > 13) {
-        x -= 13;
-        y++;
-    }
-
-    z = ["spades", "clubs", "hearts", "diams"][y];
-
-    cards.push({
-        rank: x,
-        suit: z,
-        flipped: false,
+    deck.forEach(({rank}) => {
+        if (rank === 1) count += 11, aces++;
+        else if (rank > 9) count += 10;
+        else count += rank;
     });
+
+    while (count > 21 && aces > 0) count -= 10, aces--;
+
+    return count;
 }
 
-for (var i = 0; i < 52; i++) {
-    var int = Math.floor(Math.random() * 52);
-    while (int == i) {
-        int = Math.floor(Math.random() * 52);
+function updateScore(winner) {
+    if (window.localStorage.key(0) == null) {
+        window.localStorage.setItem("ties","0");
+        window.localStorage.setItem("losses","0");
+        window.localStorage.setItem("wins","0");
     }
-
-    var hold = cards[int];
-
-    cards[int] = cards[i];
-    cards[i] = hold;
+    if (isNaN(parseInt(window.localStorage.getItem("ties")))) window.localStorage.setItem("ties", "0");
+    if (isNaN(parseInt(window.localStorage.getItem("losses")))) window.localStorage.setItem("losses", "0");
+    if (isNaN(parseInt(window.localStorage.getItem("wins")))) window.localStorage.setItem("wins", "0");
+    if (winner == 0) window.localStorage.setItem("ties", parseInt(window.localStorage.getItem("ties")) + 1);
+    else if (winner == 1) window.localStorage.setItem("losses", parseInt(window.localStorage.getItem("losses")) + 1);
+    else if (winner == 2) window.localStorage.setItem("wins", parseInt(window.localStorage.getItem("wins")) + 1);
 }
 
 class Blackjack extends React.Component {
-    constructor(props) {
-        super(props);
+    constructor() {
+        super();
 
-        var card;
-
-        var dealer = [];
-        card = cards.shift();
-        card.flipped = true;
-        dealer.push(card);
-        dealer.push(cards.shift());
-
-        var player = []
-        card = cards.shift();
-        card.flipped = true;
-        player.push(card);
-        card = cards.shift();
-        card.flipped = true;
-        player.push(card);
-
-        this.state = {
-            state: 1,
-            dealer: dealer,
-            player: player,
-            winner: 0,
-            win: false,
-            clear: false
-        };
+        this.state = {};
 
         this.hit = this.hit.bind(this);
+        this.start = this.start.bind(this);
         this.stand = this.stand.bind(this);
         this.dealerMove = this.dealerMove.bind(this);
-        this.updateScore = this.updateScore.bind(this);
-        this.getStatusText = this.getStatusText.bind(this);
+
+        this.componentDidMount = this.start;
+    }
+
+    start() {
+        const cards = [];
+        for (var i = 0; i < 52; i++) {
+            var x = i + 1, y = 0, z;
+
+            while (x > 13) x -= 13, y++;
+
+            z = ['spades','clubs','hearts','diams'][y];
+
+            cards.push({
+                rank: x,
+                suit: z
+            });
+        }
+
+        for (var i = 0; i < 52; i++) {
+            let j;
+            do {
+                j = Math.floor(Math.random() * 52);
+            } while (i === j)
+
+            const hold = cards[j];
+            cards[j] = cards[i];
+            cards[i] = hold;
+        }
+
+        const player = [cards.shift(),cards.shift()];
+        const dealer = [cards.shift(),cards.shift()];
+
+        this.setState({
+            init: true,
+            state: countCards(player) == 21 ? 2 : 0,
+            winner: 0,
+            deck: cards,
+            player,
+            dealer
+        });
     }
 
     render() {
-        return(<div className="playingCards simpleCards">
-            <h2>Dealer</h2>
-            <ul className="table">
-                {this.renderCards(this.state.dealer)}
-            </ul>
-            <h2>Player</h2>
-            <ul className="table">
-                {this.renderCards(this.state.player)}
-            </ul>
-            {this.getStatusText()}
-            {this.state.state == 1 && <button onClick={this.hit}>Hit</button>}
-            {this.state.state != 4 && <button onClick={this.stand}>Stand</button>}
-            {this.state.win && <button onClick={this.reload}>Play again!</button>}
-            {this.state.win && this.renderScoreData()}
-            {(this.state.win && !this.state.clear) && <button onClick={() => this.setState({clear: true})}>Clear Data</button>}
-            {this.state.clear && <strong>This will clear ALL data, including your highscores.  Click again to confirm.  </strong>}
-            {this.state.clear && <button onClick={() => {window.localStorage.clear(); window.location.reload();}}>Clear Data</button>}
-        </div>); //TODO: Refactor for no refresh.
-    }
-
-    renderScoreData() {
-        return(
-            <p>Wins: <strong>{window.localStorage.getItem("wins")}</strong>  Pushes: <strong>{window.localStorage.getItem("ties")}</strong>  Losses: <strong>{window.localStorage.getItem("losses")}</strong></p>
-        )
-    }
-
-    updateScore() {
-        if (window.localStorage.key(0) == null) {
-            window.localStorage.setItem("ties", "0");
-            window.localStorage.setItem("losses", "0");
-            window.localStorage.setItem("wins", "0");
-        }
-        if (this.state.winner == 0) {
-            window.localStorage.setItem("ties", parseInt(window.localStorage.getItem("ties")) + 1);
-        } else if (this.state.winner == 1) {
-            window.localStorage.setItem("losses", parseInt(window.localStorage.getItem("losses")) + 1);
-        } else if (this.state.winner == 2) {
-            window.localStorage.setItem("wins", parseInt(window.localStorage.getItem("wins")) + 1)
-        }
-    }
-    
-    reload() {
-        window.location.reload();
-    }
-
-    getStatusText() {
-        if (this.state.win) {
-            switch(this.state.winner) {
-                case 0:
-                    return <h3>Push!</h3>;
-
-                case 1:
-                    return <h3>Dealer wins...</h3>;
-
-                case 2:
-                    return <h3>You win!</h3>;
-            }
-        }
-        switch (this.state.state) {
-            case 1:
-                return <h3>Your move</h3>;
-
-            case 2:
-                return <h3>Busted!</h3>;
-
-            case 3:
-                return <h3>Blackjack!</h3>
-
-            case 4:
-                return <h3>Dealer's move</h3>;
-        }
-    }
-
-    renderCards(deck) {
-        var cards = [];
-        var ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-        var suits = ["diams", "hearts", "spades", "clubs"];
-        var suitCodes = ["♦", "♥", "♠", "♣"];
-
-        deck.forEach((card, index) => {
-            if (card.flipped) {
-                cards.push(<div className={"card rank-"+ ranks[card.rank -1].toLowerCase() +" "+ card.suit} key={index}><span className="rank">{ranks[card.rank -1]}</span><span className="suit">{suitCodes[suits.indexOf(card.suit)]}</span></div>);
-            } else {
-                cards.push(<div className="card back" key={index}>*</div>);
-            }
-        });
-
-        return cards;
+        if (!this.state.init) return null;
+        return <div className="playingCards simpleCards">
+            <h2>Dealer <sub>({this.state.state == 3 ? countCards(this.state.dealer) : "??"})</sub></h2>
+            <Deck cards={this.state.dealer} showFirst={this.state.state != 3}/>
+            <h2>Player <sub>({countCards(this.state.player)})</sub></h2>
+            <Deck cards={this.state.player}/>
+            <StatusText state={this.state.state} winner={this.state.winner}/>
+            {this.state.winner !== 0 && <ScoreData />}
+            <Buttons state={this.state.state} hit={this.hit} stand={this.stand} restart={this.start}/>
+        </div>
     }
 
     hit() {
-        var player = this.state.player;
-        var card = cards.shift();
-        card.flipped = true;
-        player.push(card);
+        var { player, deck } = this.state;
+        player.push(deck.shift());
 
-        if (this.busted(player)) {
+        if (countCards(player) > 21) {
             this.setState({
-                player: player,
-                state: 2
-            });
-        } else if (this.blackjack(player)) {
-            this.setState({
-                player: player,
-                state: 3
-            });
-        } else {
-            this.setState({
-                player: player
-            });
-        }
+                player,
+                state: 1
+            })
+        } else { this.setState({ player }) }
     }
 
     stand() {
-        var dealer = this.state.dealer;
-        dealer[1].flipped = true;
-
-        this.setState({
-            state: 4,
-            dealer: dealer
-        });
-
-        setTimeout(this.dealerMove, 1000);
-    }
-
-    busted(deck) {
-        return this.countCards(deck) > 21;
-    }
-
-    blackjack(deck) {
-        return this.countCards(deck) == 21 && this.state.player.length == 2;
+        this.setState({ state: 3 });
+        setTimeout(this.dealerMove,1000);
     }
 
     dealerMove() {
-        var dealer = this.state.dealer;
+        const { dealer, deck } = this.state;
 
-        if (this.countCards(dealer) < 17) {
-            var card = cards.shift();
-            card.flipped = true;
-            dealer.push(card);
-            this.setState({
-                dealer: dealer
-            });
+        if (countCards(dealer) < 17) {
+            dealer.push(deck.shift());
+            this.setState({ dealer });
+            setTimeout(this.dealerMove,1000);
         } else {
-            // round finish
-            var player = this.state.player;
-            var dealerScore, playerScore;
+            const playerScore = countCards(this.state.player), dealerScore = countCards(dealer);
 
-            if (this.busted(dealer)) {
-                dealerScore = 0;
-            } else {
-                dealerScore = this.countCards(dealer);
-            }
+            if (playerScore > 21 || dealerScore > playerScore && dealerScore <= 21) this.setState({ winner: 2 })
+            else if ( dealerScore > 21 || playerScore > dealerScore ) this.setState({ winner: 3 });
+            else this.setState({ winner: 1 })
 
-            if (this.busted(player)) {
-                playerScore = 0;
-            } else {
-                playerScore = this.countCards(player);
-            }
-
-            if (dealerScore > playerScore) {
-                this.setState({
-                    winner: 1
-                });
-            } else if (dealerScore < playerScore) {
-                this.setState({
-                    winner: 2
-                });
-            } else if (dealerScore == playerScore) {
-                this.setState({
-                    winner: 0
-                });
-            }
-
-            this.updateScore();
-
-            this.setState({
-                win: true
-            })
-        }
-
-        if (!this.state.win) {
-            setTimeout(this.dealerMove, 1000);
-        }
-    }
-
-    countCards(deck) {
-        var count = 0;
-        var aceCount = 0;
-
-        deck.forEach((card, index) => {
-            if (card.rank == 1) {
-                count += 11;
-                aceCount++;
-            } else if (card.rank > 9) {
-                count += 10;
-            } else {
-                count += card.rank;
-            }
-        });
-
-        while (count > 21 && aceCount > 0) {
-            count -= 10;
-            aceCount--;
-        }
-
-        return count;
-    }
-
-    componentDidMount() {
-        if (this.blackjack(this.state.player)) {
-            this.setState({
-                state: 3
-            });
+            updateScore(this.state.winner);
         }
     }
 }
 
-ReactDOM.render(<Blackjack cheater="Wow, you must really want to cheat!" nothing="Nothing here except cards and state." />, document.getElementById("blackjack"))
+function StatusText({ state, winner }) {
+    if (winner !== 0) {
+        switch(winner) {
+            case 1: return <h3>Push</h3>;
+            case 2: return <h3>Dealer Wins</h3>;
+            case 3: return <h3>You Win</h3>;
+        }
+    }
+    switch(state) {
+        case 0: return <h3>Your Move</h3>;
+        case 1: return <h3>Bust</h3>;
+        case 2: return <h3>Blackjack</h3>;
+        case 3: return <h3>Dealer Move</h3>;
+    }
+}
+
+function Buttons({ state, hit, stand, restart }) {
+    return <>
+        {state == 0 && <button onClick={hit}>Hit</button>}
+        {state != 3 && <button onClick={stand}>Stand</button>}
+        {state == 3 && <button onClick={restart}>Play Again!</button>}
+    </>;
+}
+
+function ScoreData() {
+    return <p>Wins: <strong>{window.localStorage.getItem("wins")}</strong>  Pushes: <strong>{window.localStorage.getItem("ties")}</strong>  Losses: <strong>{window.localStorage.getItem("losses")}</strong></p>;
+}
+
+function Deck({ cards, showFirst }) {
+    const rendered = [];
+    cards.forEach(({ rank, suit },i) => {
+        if (!showFirst || i == 0) rendered.push(<div className={"card rank-"+ ranks[rank -1].toLowerCase() +" "+ suit} key={i}><span className="rank">{ranks[rank -1]}</span><span className="suit">{suitCodes[suits.indexOf(suit)]}</span></div>);
+        else rendered.push(<div className="card back" key={i}>*</div>)
+    });
+    return <ul className="table">{rendered}</ul>;
+}
+
+ReactDOM.render(<Blackjack/>, document.getElementById("blackjack"));
