@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en_US">
     <head>
         <meta charset="utf-8">
@@ -12,7 +13,7 @@
         <h1>Blackjack</h1>
 
         <div id="errors"></div>
-        <script src="js/error_render.js"></script>
+        <script src="js/error-renderer.js"></script>
 
         <div id="blackjack">
             <NOSCRIPT>
@@ -48,28 +49,21 @@
             </p>
             <p>The winner is determined like this:</p>
             <p>Has the player busted?</p>
-            <p><strong>Yes:</strong> The player loses.</p>
-            <p><strong>No:</strong> Continue.</p>
-                        <ul>
-                            <li><strong>Yes:</strong> The player loses.</li>
-                            <li><strong>No:</strong> Continue.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        Has the dealer busted?
-                        <li><strong>Yes:</strong> The player wins</li>
-                        <li><strong>No:</strong> Continue.</li>
-                    </li>
-                    <li>
-                        Compare the scores.
-                        <ul>
-                            <li><strong>Dealer has more points than player?</strong> Dealer wins.</li>
-                            <li><strong>Player has more points than dealer?</strong> Player wins.</li>
-                            <li><strong>Dealer and player have equal amounts of points?</strong> It's a push!</li>
-                        </ul>
-                    </li>
-                </ol>
-            </p>
+            <ul>
+                <li><strong>Yes:</strong> The player loses.</li>
+                <li><strong>No:</strong> Continue.</li>
+            </ul>
+            <p>Has the dealer busted?</p>
+            <ul>
+                <li><strong>Yes:</strong> The player wins</li>
+                <li><strong>No:</strong> Continue.</li>
+            </ul>
+            <p>Compare the scores.</p>
+            <ul>
+                <li><strong>Dealer has more points than player?</strong> Dealer wins.</li>
+                <li><strong>Player has more points than dealer?</strong> Player wins.</li>
+                <li><strong>Dealer and player have equal amounts of points?</strong> It's a push!</li>
+            </ul>
         </div>
 
         <a href="index.html">Go back to homepage</a>
